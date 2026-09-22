@@ -1,0 +1,353 @@
+/* =====================================================
+   WANDERLY TOUR FIX
+   ===================================================== */
+
+.tour-filters {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto 35px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.tour-filters button {
+    padding: 10px 22px;
+
+    border: 1px solid #cbd5e1;
+    border-radius: 30px;
+
+    background: #ffffff;
+    color: #475569;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease,
+        transform 0.25s ease;
+}
+
+.tour-filters button:hover {
+    transform: translateY(-2px);
+
+    border-color: #0f766e;
+    color: #0f766e;
+}
+
+.tour-filters button.active {
+    background: #0f766e;
+    border-color: #0f766e;
+    color: #ffffff;
+}
+
+
+/* =====================================================
+   TOUR CARDS
+   ===================================================== */
+
+.tour-grid {
+    width: 92%;
+    max-width: 1200px;
+
+    margin: 0 auto;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 24px;
+}
+
+.tour-card {
+    min-width: 0;
+
+    overflow: hidden;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 20px;
+
+    box-shadow:
+        0 10px 30px rgba(15, 23, 42, 0.08);
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.tour-card:hover {
+    transform: translateY(-8px);
+
+    box-shadow:
+        0 20px 45px rgba(15, 23, 42, 0.14);
+}
+
+
+/* =====================================================
+   TOUR IMAGE
+   ===================================================== */
+
+.tour-image {
+    position: relative;
+    overflow: hidden;
+}
+
+.tour-image img {
+    width: 100%;
+    height: 270px;
+
+    object-fit: cover;
+
+    display: block;
+
+    transition:
+        transform 0.5s ease;
+}
+
+.tour-card:hover .tour-image img {
+    transform: scale(1.06);
+}
+
+
+/* =====================================================
+   TOUR TAG
+   ===================================================== */
+
+.tour-tag {
+    position: absolute;
+
+    top: 16px;
+    right: 16px;
+
+    padding: 8px 14px;
+
+    background: rgba(255, 255, 255, 0.95);
+
+    border-radius: 30px;
+
+    color: #0f766e;
+
+    font-size: 11px;
+    font-weight: 800;
+
+    letter-spacing: 1px;
+}
+
+
+/* =====================================================
+   TOUR CONTENT
+   ===================================================== */
+
+.tour-content {
+    padding: 25px;
+
+    display: flex;
+    flex-direction: column;
+
+    min-height: 245px;
+}
+
+.tour-content h3 {
+    margin: 0 0 10px;
+
+    color: #172033;
+
+    font-size: 22px;
+    line-height: 1.25;
+}
+
+.tour-content p {
+    margin: 0 0 22px;
+
+    color: #64748b;
+
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+
+/* =====================================================
+   TOUR BOTTOM
+   ===================================================== */
+
+.tour-bottom {
+    margin-top: auto;
+
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 12px;
+
+    padding-top: 15px;
+
+    border-top: 1px solid #e2e8f0;
+}
+
+.tour-bottom strong {
+    color: #0f172a;
+
+    font-size: 19px;
+}
+
+
+/* =====================================================
+   BOOK NOW BUTTON
+   ===================================================== */
+
+.book-tour-button {
+    width: 100%;
+
+    margin-top: 15px;
+
+    padding: 13px 18px;
+
+    border: none;
+
+    border-radius: 9px;
+
+    background: #0f766e;
+
+    color: #ffffff;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background 0.25s ease,
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.book-tour-button:hover {
+    background: #115e59;
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 8px 20px rgba(15, 118, 110, 0.25);
+}
+
+.book-tour-button:active {
+    transform: translateY(0);
+}
+
+
+/* =====================================================
+   DARK MODE
+   ===================================================== */
+
+.dark-mode .tour-filters button {
+    background: #101c2d;
+
+    border-color: #334155;
+
+    color: #cbd5e1;
+}
+
+.dark-mode .tour-filters button:hover {
+    border-color: #2dd4bf;
+
+    color: #5eead4;
+}
+
+.dark-mode .tour-filters button.active {
+    background: #0f766e;
+
+    border-color: #0f766e;
+
+    color: #ffffff;
+}
+
+.dark-mode .tour-card {
+    background: #101c2d;
+
+    border-color: #23344a;
+}
+
+.dark-mode .tour-content h3 {
+    color: #f8fafc;
+}
+
+.dark-mode .tour-content p {
+    color: #94a3b8;
+}
+
+.dark-mode .tour-bottom {
+    border-color: #334155;
+}
+
+.dark-mode .tour-bottom strong {
+    color: #f8fafc;
+}
+
+
+/* =====================================================
+   RESPONSIVE
+   ===================================================== */
+
+@media (max-width: 1100px) {
+
+    .tour-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+@media (max-width: 700px) {
+
+    .tour-grid {
+        width: 92%;
+
+        grid-template-columns: 1fr;
+
+        gap: 20px;
+    }
+
+    .tour-image img {
+        height: 240px;
+    }
+
+    .tour-content {
+        min-height: auto;
+    }
+
+    .tour-filters {
+        padding: 0 15px;
+    }
+
+}
+
+@media (max-width: 450px) {
+
+    .tour-filters button {
+        padding: 9px 15px;
+
+        font-size: 13px;
+    }
+
+    .tour-content {
+        padding: 20px;
+    }
+
+    .tour-content h3 {
+        font-size: 20px;
+    }
+
+}
