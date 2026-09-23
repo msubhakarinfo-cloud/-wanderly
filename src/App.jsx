@@ -1,305 +1,480 @@
 import { useState } from "react";
+
 import "./App.css";
+
 import Navbar from "./Navbar";
 
+
+const API_BASE_URL =
+    "https://wanderly-backend-z1xt.onrender.com";
+
+
 function App() {
-    const [darkMode, setDarkMode] = useState(false);
-
-    const [destination, setDestination] = useState("");
-    const [travelDate, setTravelDate] = useState("");
-    const [travellers, setTravellers] = useState("1");
-    const [searchMessage, setSearchMessage] = useState("");
-
-    const [activeFilter, setActiveFilter] = useState("All");
-
-    const [showBooking, setShowBooking] = useState(false);
-    const [selectedTour, setSelectedTour] = useState(null);
-
-    const [bookingName, setBookingName] = useState("");
-    const [bookingEmail, setBookingEmail] = useState("");
-    const [bookingDate, setBookingDate] = useState("");
-    const [bookingTravellers, setBookingTravellers] = useState("1");
-
-    const [bookingMessage, setBookingMessage] = useState("");
-    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
     /* =====================================================
-       TOUR DATA
+       GENERAL STATES
     ===================================================== */
 
-    const tours = [
-        {
-            id: 1,
-            title: "Goa Beach Escape",
-            image: "/images/goa.jpg",
-            category: "Beach",
-            duration: "4 Days / 3 Nights",
-            price: "₹14,999",
-            description:
-                "Relax on beautiful beaches and enjoy Goa's coastal lifestyle."
-        },
-        {
-            id: 2,
-            title: "Kashmir Mountain Journey",
-            image: "/images/kashmir.jpg",
-            category: "Mountain",
-            duration: "6 Days / 5 Nights",
-            price: "₹24,999",
-            description:
-                "Experience beautiful valleys, mountains and peaceful landscapes."
-        },
-        {
-            id: 3,
-            title: "Rajasthan Heritage Tour",
-            image: "/images/Rajasthan.jpg",
-            category: "Culture",
-            duration: "5 Days / 4 Nights",
-            price: "₹19,999",
-            description:
-                "Discover royal palaces, historic forts and local culture."
-        },
-        {
-            id: 4,
-            title: "Kerala Nature Escape",
-            image: "/images/kerala.jpg",
-            category: "Adventure",
-            duration: "5 Days / 4 Nights",
-            price: "₹18,999",
-            description:
-                "Explore backwaters, greenery and beautiful landscapes."
-        }
-    ];
+    const [darkMode, setDarkMode] =
+        useState(false);
+
+    const [destination, setDestination] =
+        useState("");
+
+    const [travelDate, setTravelDate] =
+        useState("");
+
+    const [travellers, setTravellers] =
+        useState("1");
+
+    const [searchMessage, setSearchMessage] =
+        useState("");
+
+    const [activeFilter, setActiveFilter] =
+        useState("All");
+
 
     /* =====================================================
-       FILTERED TOURS
+       BOOKING STATES
     ===================================================== */
 
-    const filteredTours =
-        activeFilter === "All"
-            ? tours
-            : tours.filter(
-                  (tour) => tour.category === activeFilter
-              );
+    const [showBooking, setShowBooking] =
+        useState(false);
+
+    const [selectedTour, setSelectedTour] =
+        useState(null);
+
+    const [bookingName, setBookingName] =
+        useState("");
+
+    const [bookingEmail, setBookingEmail] =
+        useState("");
+
+    const [bookingDate, setBookingDate] =
+        useState("");
+
+    const [bookingTravellers, setBookingTravellers] =
+        useState("1");
+
+    const [bookingMessage, setBookingMessage] =
+        useState("");
+
+    const [processingPayment, setProcessingPayment] =
+        useState(false);
+
 
     /* =====================================================
        SCROLL
     ===================================================== */
 
     const scrollToSection = (sectionId) => {
-        const section = document.getElementById(sectionId);
+
+        const section =
+            document.getElementById(sectionId);
 
         if (section) {
+
             section.scrollIntoView({
                 behavior: "smooth"
             });
+
         }
+
     };
+
 
     /* =====================================================
        SEARCH
     ===================================================== */
 
     const handleSearch = (event) => {
+
         event.preventDefault();
 
         if (!destination.trim()) {
+
             setSearchMessage(
                 "Please enter a destination."
             );
+
             return;
+
         }
 
         if (!travelDate) {
+
             setSearchMessage(
                 "Please select a travel date."
             );
+
             return;
+
         }
 
         setSearchMessage(
-            `Searching trips to ${destination} for ${travellers} traveller${
-                Number(travellers) > 1 ? "s" : ""
-            }.`
+            `Searching trips to ${destination} for ${travellers} traveller${travellers > 1 ? "s" : ""}.`
         );
+
     };
+
 
     /* =====================================================
-       GET LOGGED-IN USER
+       TOUR DATA
     ===================================================== */
 
-    const getLoggedInUser = () => {
-        const token = localStorage.getItem(
-            "wanderlyUserToken"
-        );
+    const tours = [
 
-        const userData = localStorage.getItem(
-            "wanderlyUser"
-        );
+        {
+            id: 1,
 
-        const savedEmail = localStorage.getItem(
-            "wanderlyUserEmail"
-        );
+            title:
+                "Goa Beach Escape",
 
-        if (!token) {
-            return null;
+            image:
+                "/images/goa.jpg",
+
+            category:
+                "Beach",
+
+            duration:
+                "4 Days / 3 Nights",
+
+            price:
+                "₹14,999",
+
+            description:
+                "Relax on beautiful beaches and enjoy Goa's coastal lifestyle."
+        },
+
+        {
+            id: 2,
+
+            title:
+                "Kashmir Mountain Journey",
+
+            image:
+                "/images/kashmir.jpg",
+
+            category:
+                "Mountain",
+
+            duration:
+                "6 Days / 5 Nights",
+
+            price:
+                "₹24,999",
+
+            description:
+                "Experience beautiful valleys, mountains and peaceful landscapes."
+        },
+
+        {
+            id: 3,
+
+            title:
+                "Rajasthan Heritage Tour",
+
+            image:
+                "/images/Rajasthan.jpg",
+
+            category:
+                "Culture",
+
+            duration:
+                "5 Days / 4 Nights",
+
+            price:
+                "₹19,999",
+
+            description:
+                "Discover royal palaces, historic forts and local culture."
+        },
+
+        {
+            id: 4,
+
+            title:
+                "Kerala Nature Escape",
+
+            image:
+                "/images/kerala.jpg",
+
+            category:
+                "Adventure",
+
+            duration:
+                "5 Days / 4 Nights",
+
+            price:
+                "₹18,999",
+
+            description:
+                "Explore backwaters, greenery and beautiful landscapes."
         }
 
-        let user = {};
+    ];
 
-        try {
-            user = userData
-                ? JSON.parse(userData)
-                : {};
-        } catch {
-            user = {};
-        }
 
-        return {
-            token: token,
-            name: user.name || "",
-            email: user.email || savedEmail || ""
-        };
-    };
+    const filteredTours =
+        activeFilter === "All"
+            ? tours
+            : tours.filter(
+                (tour) =>
+                    tour.category ===
+                    activeFilter
+            );
 
-    /* =====================================================
-       LOAD RAZORPAY SCRIPT
-    ===================================================== */
-
-    const loadRazorpayScript = () => {
-        return new Promise((resolve) => {
-            const existingScript =
-                document.getElementById(
-                    "razorpay-checkout-script"
-                );
-
-            if (existingScript) {
-                resolve(true);
-                return;
-            }
-
-            const script =
-                document.createElement("script");
-
-            script.id =
-                "razorpay-checkout-script";
-
-            script.src =
-                "https://checkout.razorpay.com/v1/checkout.js";
-
-            script.onload = () => {
-                resolve(true);
-            };
-
-            script.onerror = () => {
-                resolve(false);
-            };
-
-            document.body.appendChild(script);
-        });
-    };
 
     /* =====================================================
        OPEN BOOKING
     ===================================================== */
 
     const openBooking = (tour) => {
-        const loggedInUser =
-            getLoggedInUser();
+
+        const token =
+            localStorage.getItem(
+                "wanderlyUserToken"
+            );
+
+        if (!token) {
+
+            alert(
+                "Please login before booking a tour."
+            );
+
+            return;
+
+        }
+
+
+        const savedUser =
+            localStorage.getItem(
+                "wanderlyUser"
+            );
+
+        let user = null;
+
+        try {
+
+            user =
+                savedUser
+                    ? JSON.parse(savedUser)
+                    : null;
+
+        } catch {
+
+            user = null;
+
+        }
+
 
         setSelectedTour(tour);
 
+        setBookingName(
+            user?.name || ""
+        );
+
+        setBookingEmail(
+            user?.email ||
+            localStorage.getItem(
+                "wanderlyUserEmail"
+            ) ||
+            ""
+        );
+
         setBookingDate("");
+
         setBookingTravellers("1");
+
         setBookingMessage("");
 
-        if (loggedInUser) {
-            setBookingName(
-                loggedInUser.name
-            );
-
-            setBookingEmail(
-                loggedInUser.email
-            );
-        } else {
-            setBookingName("");
-            setBookingEmail("");
-        }
+        setProcessingPayment(false);
 
         setShowBooking(true);
+
     };
+
 
     /* =====================================================
        CLOSE BOOKING
     ===================================================== */
 
     const closeBooking = () => {
-        if (isProcessingPayment) {
+
+        if (processingPayment) {
             return;
         }
 
         setShowBooking(false);
+
         setSelectedTour(null);
+
         setBookingMessage("");
+
+        setProcessingPayment(false);
+
     };
 
+
     /* =====================================================
-       PAYMENT
+       LOAD RAZORPAY SCRIPT
     ===================================================== */
 
-    const handleBooking = async (event) => {
+    const loadRazorpayScript = () => {
+
+        return new Promise(
+            (resolve) => {
+
+                if (
+                    window.Razorpay
+                ) {
+
+                    resolve(true);
+
+                    return;
+
+                }
+
+
+                const existingScript =
+                    document.querySelector(
+                        'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
+                    );
+
+
+                if (existingScript) {
+
+                    existingScript.onload =
+                        () => resolve(true);
+
+                    existingScript.onerror =
+                        () => resolve(false);
+
+                    return;
+
+                }
+
+
+                const script =
+                    document.createElement(
+                        "script"
+                    );
+
+                script.src =
+                    "https://checkout.razorpay.com/v1/checkout.js";
+
+                script.async = true;
+
+                script.onload =
+                    () => resolve(true);
+
+                script.onerror =
+                    () => resolve(false);
+
+                document.body.appendChild(
+                    script
+                );
+
+            }
+        );
+
+    };
+
+
+    /* =====================================================
+       HANDLE PAYMENT
+    ===================================================== */
+
+    const handleBooking = async (
+        event
+    ) => {
+
         event.preventDefault();
 
-        const loggedInUser =
-            getLoggedInUser();
 
-        if (!loggedInUser) {
-            setBookingMessage(
-                "Please login before booking a tour."
-            );
+        if (processingPayment) {
             return;
         }
 
-        if (!selectedTour) {
-            setBookingMessage(
-                "Please select a tour."
+
+        const token =
+            localStorage.getItem(
+                "wanderlyUserToken"
             );
+
+
+        if (!token) {
+
+            setBookingMessage(
+                "Please login before making a payment."
+            );
+
             return;
+
         }
+
+
+        if (!bookingName.trim()) {
+
+            setBookingMessage(
+                "Please enter your name."
+            );
+
+            return;
+
+        }
+
+
+        if (!bookingEmail.trim()) {
+
+            setBookingMessage(
+                "Please enter your email."
+            );
+
+            return;
+
+        }
+
 
         if (!bookingDate) {
+
             setBookingMessage(
                 "Please select your travel date."
             );
+
             return;
+
         }
 
-        const numberOfTravellers =
-            Number(bookingTravellers);
 
-        if (
-            numberOfTravellers < 1 ||
-            numberOfTravellers > 6
-        ) {
+        if (!selectedTour) {
+
             setBookingMessage(
-                "Please select a valid number of travellers."
+                "Please select a tour."
             );
+
             return;
+
         }
+
 
         try {
-            setIsProcessingPayment(true);
+
+            setProcessingPayment(true);
 
             setBookingMessage(
                 "Creating secure payment order..."
             );
 
-            /* =========================================
-               CREATE RAZORPAY ORDER
-            ========================================= */
+
+            /* ---------------------------------------------
+               STEP 1
+               CREATE ORDER ON BACKEND
+            --------------------------------------------- */
 
             const orderResponse =
                 await fetch(
-                    "http://localhost:5000/api/payment/order",
+                    `${API_BASE_URL}/api/payment/order`,
                     {
                         method: "POST",
 
@@ -307,126 +482,234 @@ function App() {
                             "Content-Type":
                                 "application/json",
 
-                            Authorization:
-                                `Bearer ${loggedInUser.token}`
+                            "Authorization":
+                                `Bearer ${token}`
                         },
 
                         body: JSON.stringify({
+
                             tourId:
                                 selectedTour.id,
 
                             travellers:
-                                numberOfTravellers,
+                                Number(
+                                    bookingTravellers
+                                ),
 
                             travelDate:
                                 bookingDate
+
                         })
                     }
                 );
 
-            const orderData =
-                await orderResponse.json();
 
-            if (!orderResponse.ok) {
-                setBookingMessage(
-                    orderData.message ||
-                        "Unable to create payment order."
+            let orderData;
+
+            try {
+
+                orderData =
+                    await orderResponse.json();
+
+            } catch {
+
+                throw new Error(
+                    "The payment server returned an invalid response."
                 );
 
-                setIsProcessingPayment(false);
-                return;
             }
 
-            /* =========================================
+
+            if (!orderResponse.ok) {
+
+                if (
+                    orderResponse.status ===
+                    401
+                ) {
+
+                    localStorage.removeItem(
+                        "wanderlyUserToken"
+                    );
+
+                    localStorage.removeItem(
+                        "wanderlyUser"
+                    );
+
+                    localStorage.removeItem(
+                        "wanderlyUserEmail"
+                    );
+
+                    throw new Error(
+                        "Your login session has expired. Please login again."
+                    );
+
+                }
+
+                throw new Error(
+                    orderData.message ||
+                    "Unable to create payment order."
+                );
+
+            }
+
+
+            /* ---------------------------------------------
+               IMPORTANT
+
+               Backend now returns:
+
+               keyId
+               orderId
+               amount
+               currency
+
+               We use orderData.keyId here.
+            --------------------------------------------- */
+
+            const razorpayKey =
+                orderData.keyId;
+
+
+            const razorpayOrderId =
+                orderData.orderId;
+
+
+            if (!razorpayKey) {
+
+                console.error(
+                    "Razorpay key missing from backend response:",
+                    orderData
+                );
+
+                throw new Error(
+                    "Razorpay Key ID was not returned by the server."
+                );
+
+            }
+
+
+            if (!razorpayOrderId) {
+
+                throw new Error(
+                    "Razorpay Order ID was not returned by the server."
+                );
+
+            }
+
+
+            /* ---------------------------------------------
+               STEP 2
                LOAD RAZORPAY
-            ========================================= */
+            --------------------------------------------- */
+
+            setBookingMessage(
+                "Opening secure payment..."
+            );
+
 
             const razorpayLoaded =
                 await loadRazorpayScript();
 
+
             if (!razorpayLoaded) {
-                setBookingMessage(
+
+                throw new Error(
                     "Unable to load Razorpay Checkout."
                 );
 
-                setIsProcessingPayment(false);
-                return;
             }
 
-            /* =========================================
-               RAZORPAY OPTIONS
-            ========================================= */
+
+            if (!window.Razorpay) {
+
+                throw new Error(
+                    "Razorpay Checkout is unavailable."
+                );
+
+            }
+
+
+            /* ---------------------------------------------
+               STEP 3
+               RAZORPAY CHECKOUT
+            --------------------------------------------- */
 
             const options = {
-                key: orderData.key,
 
-                amount: orderData.amount,
+                key:
+                    razorpayKey,
+
+                amount:
+                    orderData.amount,
 
                 currency:
-                    orderData.currency,
+                    orderData.currency ||
+                    "INR",
 
-                name: "Wanderly",
+                name:
+                    "Wanderly",
 
                 description:
                     selectedTour.title,
 
                 order_id:
-                    orderData.orderId,
+                    razorpayOrderId,
 
                 prefill: {
+
                     name:
-                        loggedInUser.name,
+                        bookingName.trim(),
 
                     email:
-                        loggedInUser.email
-                },
+                        bookingEmail.trim()
 
-                notes: {
-                    tour:
-                        selectedTour.title,
-
-                    travelDate:
-                        bookingDate,
-
-                    travellers:
-                        String(
-                            numberOfTravellers
-                        )
                 },
 
                 theme: {
-                    color: "#111827"
+
+                    color:
+                        "#0f766e"
+
                 },
+
 
                 handler:
                     async function (
                         paymentResponse
                     ) {
+
                         try {
+
                             setBookingMessage(
                                 "Verifying payment..."
                             );
 
-                            /* =========================
+
+                            /* -------------------------
+                               STEP 4
                                VERIFY PAYMENT
-                            ========================= */
+                            ------------------------- */
 
                             const verifyResponse =
                                 await fetch(
-                                    "http://localhost:5000/api/payment/verify",
+                                    `${API_BASE_URL}/api/payment/verify`,
                                     {
-                                        method: "POST",
+                                        method:
+                                            "POST",
 
                                         headers: {
+
                                             "Content-Type":
                                                 "application/json",
 
-                                            Authorization:
-                                                `Bearer ${loggedInUser.token}`
+                                            "Authorization":
+                                                `Bearer ${token}`
+
                                         },
 
                                         body:
                                             JSON.stringify({
+
                                                 razorpay_order_id:
                                                     paymentResponse.razorpay_order_id,
 
@@ -443,91 +726,223 @@ function App() {
                                                     bookingDate,
 
                                                 travellers:
-                                                    numberOfTravellers
+                                                    Number(
+                                                        bookingTravellers
+                                                    ),
+
+                                                customerName:
+                                                    bookingName.trim(),
+
+                                                customerEmail:
+                                                    bookingEmail
+                                                        .trim()
+                                                        .toLowerCase()
+
                                             })
                                     }
                                 );
 
+
                             const verifyData =
                                 await verifyResponse.json();
 
-                            if (!verifyResponse.ok) {
-                                setBookingMessage(
+
+                            if (
+                                !verifyResponse.ok
+                            ) {
+
+                                throw new Error(
                                     verifyData.message ||
-                                        "Payment verification failed."
+                                    "Payment verification failed."
                                 );
 
-                                setIsProcessingPayment(
-                                    false
-                                );
-
-                                return;
                             }
+
 
                             setBookingMessage(
                                 "Payment successful! Your booking is confirmed."
                             );
 
-                            setIsProcessingPayment(
+
+                            setProcessingPayment(
                                 false
                             );
 
-                        } catch (error) {
+
+                            setTimeout(
+                                () => {
+
+                                    setShowBooking(
+                                        false
+                                    );
+
+                                    setSelectedTour(
+                                        null
+                                    );
+
+                                    setBookingMessage(
+                                        ""
+                                    );
+
+                                },
+                                1800
+                            );
+
+
+                        } catch (
+                            verificationError
+                        ) {
+
                             console.error(
                                 "Payment verification error:",
-                                error
+                                verificationError
                             );
+
 
                             setBookingMessage(
-                                "Payment was completed, but verification could not be completed."
+                                verificationError.message ||
+                                "Payment verification failed."
                             );
 
-                            setIsProcessingPayment(
+
+                            setProcessingPayment(
                                 false
                             );
+
                         }
+
                     },
 
-                modal: {
-                    ondismiss:
-                        function () {
-                            setBookingMessage(
-                                "Payment window closed."
-                            );
 
-                            setIsProcessingPayment(
-                                false
-                            );
-                        }
-                }
+                modal:
+                    {
+
+                        ondismiss:
+                            function () {
+
+                                setBookingMessage(
+                                    "Payment window closed."
+                                );
+
+                                setProcessingPayment(
+                                    false
+                                );
+
+                            }
+
+                    }
+
             };
 
-            /* =========================================
-               OPEN RAZORPAY
-            ========================================= */
 
-            const paymentWindow =
+            /* ---------------------------------------------
+               CREATE RAZORPAY CHECKOUT
+            --------------------------------------------- */
+
+            console.log(
+                "Opening Razorpay with:",
+                {
+                    hasKey:
+                        Boolean(
+                            options.key
+                        ),
+
+                    orderId:
+                        options.order_id,
+
+                    amount:
+                        options.amount,
+
+                    currency:
+                        options.currency
+                }
+            );
+
+
+            const razorpay =
                 new window.Razorpay(
                     options
                 );
 
-            paymentWindow.open();
+
+            razorpay.on(
+                "payment.failed",
+                function (
+                    response
+                ) {
+
+                    console.error(
+                        "Razorpay payment failed:",
+                        response
+                    );
+
+
+                    setBookingMessage(
+                        response?.error?.description ||
+                        "Payment failed."
+                    );
+
+
+                    setProcessingPayment(
+                        false
+                    );
+
+                }
+            );
+
+
+            razorpay.open();
+
 
         } catch (error) {
+
             console.error(
                 "Payment error:",
                 error
             );
 
+
             setBookingMessage(
+                error.message ||
                 "Unable to start payment."
             );
 
-            setIsProcessingPayment(false);
+
+            setProcessingPayment(
+                false
+            );
+
         }
+
     };
 
+
+    /* =====================================================
+       TOTAL
+    ===================================================== */
+
+    const pricePerPerson =
+        selectedTour
+            ? Number(
+                selectedTour.price.replace(
+                    /[^0-9]/g,
+                    ""
+                )
+            )
+            : 0;
+
+
+    const totalAmount =
+        pricePerPerson *
+        Number(bookingTravellers);
+
+
+    /* =====================================================
+       PAGE
+    ===================================================== */
+
     return (
+
         <div
             className={
                 darkMode
@@ -536,15 +951,20 @@ function App() {
             }
         >
 
-            {/* =================================================
-                NAVBAR
-            ================================================= */}
-
             <Navbar
-                darkMode={darkMode}
-                setDarkMode={setDarkMode}
-                scrollToSection={scrollToSection}
+                darkMode={
+                    darkMode
+                }
+
+                setDarkMode={
+                    setDarkMode
+                }
+
+                scrollToSection={
+                    scrollToSection
+                }
             />
+
 
             {/* =================================================
                 HERO
@@ -554,6 +974,7 @@ function App() {
                 id="home"
                 className="hero-section"
             >
+
                 <div className="hero-content">
 
                     <span className="hero-label">
@@ -569,16 +990,19 @@ function App() {
                     <p>
                         Explore beautiful destinations,
                         create unforgettable memories
-                        and experience the world with
-                        Wanderly.
+                        and experience the world with Wanderly.
                     </p>
+
 
                     <form
                         className="search-box"
-                        onSubmit={handleSearch}
+                        onSubmit={
+                            handleSearch
+                        }
                     >
 
                         <div className="search-item">
+
                             <label>
                                 Destination
                             </label>
@@ -586,44 +1010,60 @@ function App() {
                             <input
                                 type="text"
                                 placeholder="Where do you want to go?"
-                                value={destination}
-                                onChange={(e) =>
-                                    setDestination(
-                                        e.target.value
-                                    )
+                                value={
+                                    destination
+                                }
+                                onChange={
+                                    (e) =>
+                                        setDestination(
+                                            e.target.value
+                                        )
                                 }
                             />
+
                         </div>
 
+
                         <div className="search-item">
+
                             <label>
                                 Travel Date
                             </label>
 
                             <input
                                 type="date"
-                                value={travelDate}
-                                onChange={(e) =>
-                                    setTravelDate(
-                                        e.target.value
-                                    )
+                                value={
+                                    travelDate
+                                }
+                                onChange={
+                                    (e) =>
+                                        setTravelDate(
+                                            e.target.value
+                                        )
                                 }
                             />
+
                         </div>
 
+
                         <div className="search-item">
+
                             <label>
                                 Travellers
                             </label>
 
                             <select
-                                value={travellers}
-                                onChange={(e) =>
-                                    setTravellers(
-                                        e.target.value
-                                    )
+                                value={
+                                    travellers
+                                }
+                                onChange={
+                                    (e) =>
+                                        setTravellers(
+                                            e.target.value
+                                        )
                                 }
                             >
+
                                 <option value="1">
                                     1 Traveller
                                 </option>
@@ -647,8 +1087,11 @@ function App() {
                                 <option value="6">
                                     6 Travellers
                                 </option>
+
                             </select>
+
                         </div>
+
 
                         <button
                             type="submit"
@@ -659,14 +1102,19 @@ function App() {
 
                     </form>
 
+
                     {searchMessage && (
+
                         <div className="search-message">
                             {searchMessage}
                         </div>
+
                     )}
 
                 </div>
+
             </section>
+
 
             {/* =================================================
                 DESTINATIONS
@@ -689,11 +1137,11 @@ function App() {
 
                     <p>
                         Discover beautiful places,
-                        cultures and unforgettable
-                        experiences.
+                        cultures and unforgettable experiences.
                     </p>
 
                 </div>
+
 
                 <div className="destination-grid">
 
@@ -705,6 +1153,7 @@ function App() {
                         />
 
                         <div>
+
                             <small>
                                 South India
                             </small>
@@ -714,13 +1163,13 @@ function App() {
                             </h3>
 
                             <p>
-                                Experience peaceful
-                                backwaters, beautiful
-                                beaches and rich traditions.
+                                Experience peaceful backwaters,
+                                beautiful beaches and rich traditions.
                             </p>
 
                             <button
                                 onClick={() => {
+
                                     setDestination(
                                         "Kerala"
                                     );
@@ -728,13 +1177,16 @@ function App() {
                                     scrollToSection(
                                         "home"
                                     );
+
                                 }}
                             >
                                 Explore Destination →
                             </button>
+
                         </div>
 
                     </div>
+
 
                     <div className="destination-card">
 
@@ -744,6 +1196,7 @@ function App() {
                         />
 
                         <div>
+
                             <small>
                                 North India
                             </small>
@@ -753,13 +1206,13 @@ function App() {
                             </h3>
 
                             <p>
-                                Explore breathtaking
-                                mountains, valleys and
-                                unforgettable scenery.
+                                Explore breathtaking mountains,
+                                valleys and unforgettable scenery.
                             </p>
 
                             <button
                                 onClick={() => {
+
                                     setDestination(
                                         "Kashmir"
                                     );
@@ -767,13 +1220,16 @@ function App() {
                                     scrollToSection(
                                         "home"
                                     );
+
                                 }}
                             >
                                 Explore Destination →
                             </button>
+
                         </div>
 
                     </div>
+
 
                     <div className="destination-card">
 
@@ -783,6 +1239,7 @@ function App() {
                         />
 
                         <div>
+
                             <small>
                                 West India
                             </small>
@@ -793,12 +1250,12 @@ function App() {
 
                             <p>
                                 Enjoy sunny beaches,
-                                coastal adventures and
-                                nightlife.
+                                coastal adventures and nightlife.
                             </p>
 
                             <button
                                 onClick={() => {
+
                                     setDestination(
                                         "Goa"
                                     );
@@ -806,13 +1263,16 @@ function App() {
                                     scrollToSection(
                                         "home"
                                     );
+
                                 }}
                             >
                                 Explore Destination →
                             </button>
+
                         </div>
 
                     </div>
+
 
                     <div className="destination-card">
 
@@ -822,6 +1282,7 @@ function App() {
                         />
 
                         <div>
+
                             <small>
                                 West India
                             </small>
@@ -831,13 +1292,13 @@ function App() {
                             </h3>
 
                             <p>
-                                Discover magnificent
-                                forts, palaces and
-                                cultural traditions.
+                                Discover magnificent forts,
+                                palaces and cultural traditions.
                             </p>
 
                             <button
                                 onClick={() => {
+
                                     setDestination(
                                         "Rajasthan"
                                     );
@@ -845,10 +1306,12 @@ function App() {
                                     scrollToSection(
                                         "home"
                                     );
+
                                 }}
                             >
                                 Explore Destination →
                             </button>
+
                         </div>
 
                     </div>
@@ -857,11 +1320,14 @@ function App() {
 
             </section>
 
+
             {/* =================================================
                 FEATURES
             ================================================= */}
 
-            <section className="features-section">
+            <section
+                className="features-section"
+            >
 
                 <div className="section-header">
 
@@ -874,15 +1340,17 @@ function App() {
                     </h2>
 
                     <p>
-                        Everything you need for a
-                        comfortable and memorable journey.
+                        Everything you need for a comfortable
+                        and memorable journey.
                     </p>
 
                 </div>
 
+
                 <div className="feature-grid">
 
                     <div className="feature-card">
+
                         <div className="feature-icon">
                             🌍
                         </div>
@@ -892,13 +1360,15 @@ function App() {
                         </h3>
 
                         <p>
-                            Discover incredible
-                            destinations across India
-                            and beyond.
+                            Discover incredible destinations
+                            across India and beyond.
                         </p>
+
                     </div>
 
+
                     <div className="feature-card">
+
                         <div className="feature-icon">
                             🧭
                         </div>
@@ -911,9 +1381,12 @@ function App() {
                             Travel with experienced guides
                             who know the destinations.
                         </p>
+
                     </div>
 
+
                     <div className="feature-card">
+
                         <div className="feature-icon">
                             💰
                         </div>
@@ -923,29 +1396,16 @@ function App() {
                         </h3>
 
                         <p>
-                            Find attractive travel
-                            packages at competitive prices.
+                            Find attractive travel packages
+                            at competitive prices.
                         </p>
-                    </div>
 
-                    <div className="feature-card">
-                        <div className="feature-icon">
-                            🛡️
-                        </div>
-
-                        <h3>
-                            Safe Travel
-                        </h3>
-
-                        <p>
-                            Enjoy your journey with
-                            reliable travel support.
-                        </p>
                     </div>
 
                 </div>
 
             </section>
+
 
             {/* =================================================
                 TOURS
@@ -959,111 +1419,188 @@ function App() {
                 <div className="section-header">
 
                     <span>
-                        OUR TOURS
+                        POPULAR TOURS
                     </span>
 
                     <h2>
-                        Popular Tours
+                        Choose Your Next Adventure
                     </h2>
 
                     <p>
-                        Choose your next unforgettable
-                        adventure.
+                        Explore our hand-picked travel experiences.
                     </p>
 
                 </div>
 
-                <div className="filter-buttons">
 
-                    {[
-                        "All",
-                        "Beach",
-                        "Mountain",
-                        "Culture",
-                        "Adventure"
-                    ].map((filter) => (
-                        <button
-                            key={filter}
-                            className={
-                                activeFilter === filter
-                                    ? "filter-btn active"
-                                    : "filter-btn"
-                            }
-                            onClick={() =>
-                                setActiveFilter(
-                                    filter
-                                )
-                            }
-                        >
-                            {filter}
-                        </button>
-                    ))}
+                <div className="tour-filters">
+
+                    <button
+                        className={
+                            activeFilter === "All"
+                                ? "filter-btn active"
+                                : "filter-btn"
+                        }
+                        onClick={() =>
+                            setActiveFilter(
+                                "All"
+                            )
+                        }
+                    >
+                        All
+                    </button>
+
+
+                    <button
+                        className={
+                            activeFilter === "Beach"
+                                ? "filter-btn active"
+                                : "filter-btn"
+                        }
+                        onClick={() =>
+                            setActiveFilter(
+                                "Beach"
+                            )
+                        }
+                    >
+                        Beach
+                    </button>
+
+
+                    <button
+                        className={
+                            activeFilter === "Mountain"
+                                ? "filter-btn active"
+                                : "filter-btn"
+                        }
+                        onClick={() =>
+                            setActiveFilter(
+                                "Mountain"
+                            )
+                        }
+                    >
+                        Mountain
+                    </button>
+
+
+                    <button
+                        className={
+                            activeFilter === "Culture"
+                                ? "filter-btn active"
+                                : "filter-btn"
+                        }
+                        onClick={() =>
+                            setActiveFilter(
+                                "Culture"
+                            )
+                        }
+                    >
+                        Culture
+                    </button>
+
+
+                    <button
+                        className={
+                            activeFilter === "Adventure"
+                                ? "filter-btn active"
+                                : "filter-btn"
+                        }
+                        onClick={() =>
+                            setActiveFilter(
+                                "Adventure"
+                            )
+                        }
+                    >
+                        Adventure
+                    </button>
 
                 </div>
 
+
                 <div className="tour-grid">
 
-                    {filteredTours.map((tour) => (
+                    {filteredTours.map(
+                        (tour) => (
 
-                        <div
-                            className="tour-card"
-                            key={tour.id}
-                        >
+                            <div
+                                className="tour-card"
+                                key={
+                                    tour.id
+                                }
+                            >
 
-                            <div className="tour-image">
+                                <div className="tour-image">
 
-                                <img
-                                    src={tour.image}
-                                    alt={tour.title}
-                                />
-
-                                <span>
-                                    {tour.category}
-                                </span>
-
-                            </div>
-
-                            <div className="tour-content">
-
-                                <small>
-                                    {tour.duration}
-                                </small>
-
-                                <h3>
-                                    {tour.title}
-                                </h3>
-
-                                <p>
-                                    {tour.description}
-                                </p>
-
-                                <div className="tour-bottom">
-
-                                    <strong>
-                                        {tour.price}
-                                    </strong>
-
-                                    <button
-                                        onClick={() =>
-                                            openBooking(
-                                                tour
-                                            )
+                                    <img
+                                        src={
+                                            tour.image
                                         }
-                                    >
-                                        Book Now
-                                    </button>
+                                        alt={
+                                            tour.title
+                                        }
+                                    />
+
+                                    <span>
+                                        {
+                                            tour.category
+                                        }
+                                    </span>
+
+                                </div>
+
+
+                                <div className="tour-content">
+
+                                    <small>
+                                        {
+                                            tour.duration
+                                        }
+                                    </small>
+
+                                    <h3>
+                                        {
+                                            tour.title
+                                        }
+                                    </h3>
+
+                                    <p>
+                                        {
+                                            tour.description
+                                        }
+                                    </p>
+
+
+                                    <div className="tour-bottom">
+
+                                        <strong>
+                                            {
+                                                tour.price
+                                            }
+                                        </strong>
+
+                                        <button
+                                            onClick={() =>
+                                                openBooking(
+                                                    tour
+                                                )
+                                            }
+                                        >
+                                            Book Now
+                                        </button>
+
+                                    </div>
 
                                 </div>
 
                             </div>
 
-                        </div>
-
-                    ))}
+                        )
+                    )}
 
                 </div>
 
             </section>
+
 
             {/* =================================================
                 ABOUT
@@ -1085,6 +1622,7 @@ function App() {
 
                     </div>
 
+
                     <div className="about-content">
 
                         <span>
@@ -1098,18 +1636,16 @@ function App() {
                         </h2>
 
                         <p>
-                            Wanderly helps travellers
-                            discover beautiful destinations
-                            and create unforgettable
-                            experiences.
+                            Wanderly helps travellers discover
+                            beautiful destinations and create
+                            unforgettable experiences.
                         </p>
 
                         <p>
-                            From peaceful beaches and
-                            mountains to historic cities
-                            and cultural destinations,
-                            we make planning your journey
-                            simple.
+                            From peaceful beaches and mountains
+                            to historic cities and cultural
+                            destinations, we make planning your
+                            journey simple.
                         </p>
 
                         <button
@@ -1128,11 +1664,14 @@ function App() {
 
             </section>
 
+
             {/* =================================================
                 TESTIMONIALS
             ================================================= */}
 
-            <section className="testimonials-section">
+            <section
+                className="testimonials-section"
+            >
 
                 <div className="section-header">
 
@@ -1146,6 +1685,7 @@ function App() {
 
                 </div>
 
+
                 <div className="testimonial-grid">
 
                     <div className="testimonial-card">
@@ -1155,9 +1695,9 @@ function App() {
                         </div>
 
                         <p>
-                            "Wanderly made planning our
-                            Kashmir trip incredibly simple.
-                            Everything was well organised."
+                            "Wanderly made planning our Kashmir
+                            trip incredibly simple. Everything
+                            was well organised."
                         </p>
 
                         <strong>
@@ -1166,6 +1706,7 @@ function App() {
 
                     </div>
 
+
                     <div className="testimonial-card">
 
                         <div className="stars">
@@ -1173,9 +1714,9 @@ function App() {
                         </div>
 
                         <p>
-                            "The Goa trip was amazing.
-                            The destination recommendations
-                            were exactly what we needed."
+                            "The Goa trip was amazing. The
+                            destination recommendations were
+                            exactly what we needed."
                         </p>
 
                         <strong>
@@ -1183,6 +1724,7 @@ function App() {
                         </strong>
 
                     </div>
+
 
                     <div className="testimonial-card">
 
@@ -1206,11 +1748,14 @@ function App() {
 
             </section>
 
+
             {/* =================================================
                 CTA
             ================================================= */}
 
-            <section className="cta-section">
+            <section
+                className="cta-section"
+            >
 
                 <div className="cta-content">
 
@@ -1230,16 +1775,17 @@ function App() {
                     <button
                         onClick={() =>
                             scrollToSection(
-                                "destinations"
+                                "tours"
                             )
                         }
                     >
-                        Explore Destinations
+                        Explore Tours
                     </button>
 
                 </div>
 
             </section>
+
 
             {/* =================================================
                 CONTACT
@@ -1261,20 +1807,22 @@ function App() {
                     </h2>
 
                     <p>
-                        Have a question?
-                        Send us a message.
+                        Have a question? Send us a message.
                     </p>
 
                 </div>
 
+
                 <form
                     className="contact-form"
                     onSubmit={(e) => {
+
                         e.preventDefault();
 
                         alert(
                             "Thank you! Your message has been received."
                         );
+
                     }}
                 >
 
@@ -1287,12 +1835,6 @@ function App() {
                     <input
                         type="email"
                         placeholder="Your Email"
-                        required
-                    />
-
-                    <input
-                        type="text"
-                        placeholder="Subject"
                         required
                     />
 
@@ -1309,6 +1851,7 @@ function App() {
                 </form>
 
             </section>
+
 
             {/* =================================================
                 FOOTER
@@ -1330,6 +1873,7 @@ function App() {
                         </p>
 
                     </div>
+
 
                     <div>
 
@@ -1369,6 +1913,7 @@ function App() {
 
                     </div>
 
+
                     <div>
 
                         <h3>
@@ -1399,6 +1944,7 @@ function App() {
 
                 </div>
 
+
                 <div className="footer-bottom">
 
                     <p>
@@ -1409,6 +1955,7 @@ function App() {
 
             </footer>
 
+
             {/* =================================================
                 BOOKING MODAL
             ================================================= */}
@@ -1418,25 +1965,29 @@ function App() {
 
                     <div
                         className="booking-overlay"
-                        onClick={closeBooking}
+                        onClick={
+                            closeBooking
+                        }
                     >
 
                         <div
                             className="booking-modal"
-                            onClick={(e) =>
-                                e.stopPropagation()
+                            onClick={
+                                (e) =>
+                                    e.stopPropagation()
                             }
                         >
 
                             <button
                                 className="booking-close"
-                                onClick={closeBooking}
-                                disabled={
-                                    isProcessingPayment
+                                onClick={
+                                    closeBooking
                                 }
+                                type="button"
                             >
                                 ×
                             </button>
+
 
                             <div className="booking-header">
 
@@ -1445,14 +1996,19 @@ function App() {
                                 </span>
 
                                 <h2>
-                                    {selectedTour.title}
+                                    {
+                                        selectedTour.title
+                                    }
                                 </h2>
 
                                 <p>
-                                    {selectedTour.duration}
+                                    {
+                                        selectedTour.duration
+                                    }
                                 </p>
 
                             </div>
+
 
                             <div className="booking-tour-info">
 
@@ -1468,7 +2024,9 @@ function App() {
                                 <div>
 
                                     <strong>
-                                        {selectedTour.price}
+                                        {
+                                            selectedTour.price
+                                        }
                                     </strong>
 
                                     <span>
@@ -1479,9 +2037,12 @@ function App() {
 
                             </div>
 
+
                             <form
                                 className="booking-form"
-                                onSubmit={handleBooking}
+                                onSubmit={
+                                    handleBooking
+                                }
                             >
 
                                 <label>
@@ -1490,10 +2051,19 @@ function App() {
 
                                 <input
                                     type="text"
-                                    value={bookingName}
+                                    value={
+                                        bookingName
+                                    }
+                                    onChange={
+                                        (e) =>
+                                            setBookingName(
+                                                e.target.value
+                                            )
+                                    }
                                     readOnly
                                     required
                                 />
+
 
                                 <label>
                                     Email Address
@@ -1501,10 +2071,19 @@ function App() {
 
                                 <input
                                     type="email"
-                                    value={bookingEmail}
+                                    value={
+                                        bookingEmail
+                                    }
+                                    onChange={
+                                        (e) =>
+                                            setBookingEmail(
+                                                e.target.value
+                                            )
+                                    }
                                     readOnly
                                     required
                                 />
+
 
                                 <label>
                                     Travel Date
@@ -1512,19 +2091,25 @@ function App() {
 
                                 <input
                                     type="date"
-                                    value={bookingDate}
+                                    value={
+                                        bookingDate
+                                    }
+                                    onChange={
+                                        (e) =>
+                                            setBookingDate(
+                                                e.target.value
+                                            )
+                                    }
                                     min={
                                         new Date()
                                             .toISOString()
-                                            .split("T")[0]
-                                    }
-                                    onChange={(e) =>
-                                        setBookingDate(
-                                            e.target.value
-                                        )
+                                            .split(
+                                                "T"
+                                            )[0]
                                     }
                                     required
                                 />
+
 
                                 <label>
                                     Number of Travellers
@@ -1534,10 +2119,11 @@ function App() {
                                     value={
                                         bookingTravellers
                                     }
-                                    onChange={(e) =>
-                                        setBookingTravellers(
-                                            e.target.value
-                                        )
+                                    onChange={
+                                        (e) =>
+                                            setBookingTravellers(
+                                                e.target.value
+                                            )
                                     }
                                 >
 
@@ -1567,6 +2153,7 @@ function App() {
 
                                 </select>
 
+
                                 <div className="booking-total">
 
                                     <span>
@@ -1575,39 +2162,41 @@ function App() {
 
                                     <strong>
                                         ₹
-                                        {(
-                                            Number(
-                                                selectedTour.price.replace(
-                                                    /[^0-9]/g,
-                                                    ""
-                                                )
-                                            ) *
-                                            Number(
-                                                bookingTravellers
+                                        {
+                                            totalAmount.toLocaleString(
+                                                "en-IN"
                                             )
-                                        ).toLocaleString(
-                                            "en-IN"
-                                        )}
+                                        }
                                     </strong>
 
                                 </div>
+
 
                                 <button
                                     type="submit"
                                     className="confirm-booking-button"
                                     disabled={
-                                        isProcessingPayment
+                                        processingPayment
                                     }
                                 >
-                                    {isProcessingPayment
+
+                                    {processingPayment
                                         ? "Processing..."
                                         : "Pay & Confirm Booking"}
+
                                 </button>
 
+
                                 {bookingMessage && (
-                                    <div className="booking-message">
-                                        {bookingMessage}
+
+                                    <div
+                                        className="booking-message"
+                                    >
+                                        {
+                                            bookingMessage
+                                        }
                                     </div>
+
                                 )}
 
                             </form>
@@ -1615,10 +2204,14 @@ function App() {
                         </div>
 
                     </div>
+
                 )}
 
         </div>
+
     );
+
 }
+
 
 export default App;

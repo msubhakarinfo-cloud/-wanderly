@@ -1,83 +1,305 @@
-require("dotenv").config();
-
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const dotenv = require("dotenv");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
 const Razorpay = require("razorpay");
+const crypto = require("crypto");
 
-const User = require("./models/User");
-const Admin = require("./models/Admin");
-const BookingSchema = require("./models/Booking");
+dotenv.config();
 
 const app = express();
 
-app.use(cors());
+app.use(
+    cors({
+        origin: true,
+        credentials: true
+    })
+);
+
 app.use(express.json());
+
+/* =========================================================
+   CONFIGURATION
+========================================================= */
 
 const PORT = process.env.PORT || 5000;
 
-const JWT_SECRET =
-    process.env.JWT_SECRET || "wanderly-secret-key";
+const MONGO_URI = process.env.MONGO_URI;
+const MONGO_BOOKINGS_URI =
+    process.env.MONGO_BOOKINGS_URI;
 
+const JWT_SECRET = process.env.JWT_SECRET;
 
+const RAZORPAY_KEY_ID =
+    process.env.RAZORPAY_KEY_ID;
 
-/* =========================================================
-   DATABASE CONNECTIONS
-========================================================= */
-
-const userConnection = mongoose.createConnection(
-    process.env.MONGO_URI
-);
-
-const bookingConnection = mongoose.createConnection(
-    process.env.MONGO_BOOKINGS_URI
-);
-
+const RAZORPAY_KEY_SECRET =
+    process.env.RAZORPAY_KEY_SECRET;
 
 
 /* =========================================================
-   DATABASE MODELS
+   CHECK ENVIRONMENT VARIABLES
 ========================================================= */
 
-const UserModel = userConnection.model(
-    "User",
-    User.schema
+console.log("Environment check:");
+
+console.log(
+    "MONGO_URI:",
+    MONGO_URI ? "OK" : "MISSING"
 );
 
-const AdminModel = userConnection.model(
-    "Admin",
-    Admin.schema
+console.log(
+    "MONGO_BOOKINGS_URI:",
+    MONGO_BOOKINGS_URI ? "OK" : "MISSING"
 );
 
-const BookingModel = bookingConnection.model(
-    "Booking",
-    BookingSchema
+console.log(
+    "JWT_SECRET:",
+    JWT_SECRET ? "OK" : "MISSING"
 );
 
+console.log(
+    "RAZORPAY_KEY_ID:",
+    RAZORPAY_KEY_ID ? "OK" : "MISSING"
+);
+
+console.log(
+    "RAZORPAY_KEY_SECRET:",
+    RAZORPAY_KEY_SECRET ? "OK" : "MISSING"
+);
+
+
+/* =========================================================
+   STOP SERVER IF CRITICAL VARIABLES ARE MISSING
+========================================================= */
+
+if (!MONGO_URI) {
+    console.error("ERROR: MONGO_URI is missing.");
+}
+
+if (!MONGO_BOOKINGS_URI) {
+    console.error(
+        "ERROR: MONGO_BOOKINGS_URI is missing."
+    );
+}
+
+if (!JWT_SECRET) {
+    console.error(
+        "ERROR: JWT_SECRET is missing."
+    );
+}
+
+if (!RAZORPAY_KEY_ID) {
+    console.error(
+        "ERROR: RAZORPAY_KEY_ID is missing."
+    );
+}
+
+if (!RAZORPAY_KEY_SECRET) {
+    console.error(
+        "ERROR: RAZORPAY_KEY_SECRET is missing."
+    );
+}
+
+
+/* =========================================================
+   MONGODB CONNECTIONS
+========================================================= */
+
+const userConnection =
+    mongoose.createConnection(MONGO_URI);
+
+const bookingConnection =
+    mongoose.createConnection(
+        MONGO_BOOKINGS_URI
+    );
+
+
+/* =========================================================
+   SCHEMAS
+========================================================= */
+
+const userSchema = new mongoose.Schema(
+    {
+        name: {
+            type: String,
+            required: true,
+            trim: true
+        },
+
+        email: {
+            type: String,
+            required: true,
+            unique: true,
+            trim: true,
+            lowercase: true
+        },
+
+        password: {
+            type: String,
+            required: true
+        }
+    },
+    {
+        timestamps: true
+    }
+);
+
+
+const bookingSchema =
+    new mongoose.Schema(
+        {
+            userId: {
+                type: String,
+                required: true
+            },
+
+            tourId: {
+                type: Number,
+                required: true
+            },
+
+            tourName: {
+                type: String,
+                required: true,
+                trim: true
+            },
+
+            customerName: {
+                type: String,
+                required: true,
+                trim: true
+            },
+
+            customerEmail: {
+                type: String,
+                required: true,
+                trim: true,
+                lowercase: true
+            },
+
+            travelDate: {
+                type: String,
+                required: true
+            },
+
+            travellers: {
+                type: Number,
+                required: true,
+                min: 1
+            },
+
+            pricePerPerson: {
+                type: Number,
+                required: true
+            },
+
+            totalAmount: {
+                type: Number,
+                required: true
+            },
+
+            razorpayOrderId: {
+                type: String,
+                required: true
+            },
+
+            razorpayPaymentId: {
+                type: String,
+                required: true
+            },
+
+            razorpaySignature: {
+                type: String,
+                required: true
+            },
+
+            paymentStatus: {
+                type: String,
+                default: "Paid"
+            },
+
+            bookingStatus: {
+                type: String,
+                default: "Confirmed"
+            }
+        },
+        {
+            timestamps: true
+        }
+    );
+
+
+const adminSchema =
+    new mongoose.Schema(
+        {
+            name: {
+                type: String,
+                required: true,
+                trim: true
+            },
+
+            email: {
+                type: String,
+                required: true,
+                unique: true,
+                trim: true,
+                lowercase: true
+            },
+
+            password: {
+                type: String,
+                required: true
+            }
+        },
+        {
+            timestamps: true
+        }
+    );
+
+
+/* =========================================================
+   MODELS
+========================================================= */
+
+const UserModel =
+    userConnection.model(
+        "User",
+        userSchema
+    );
+
+const AdminModel =
+    userConnection.model(
+        "Admin",
+        adminSchema
+    );
+
+const BookingModel =
+    bookingConnection.model(
+        "Booking",
+        bookingSchema
+    );
 
 
 /* =========================================================
    RAZORPAY
 ========================================================= */
 
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET
-});
-
+const razorpay =
+    new Razorpay({
+        key_id: RAZORPAY_KEY_ID,
+        key_secret: RAZORPAY_KEY_SECRET
+    });
 
 
 /* =========================================================
    TOUR DATA
-   IMPORTANT:
-   Prices are stored on the backend so customers
-   cannot change the price from the browser.
 ========================================================= */
 
 const tours = {
+
     1: {
         name: "Goa Beach Escape",
         price: 14999
@@ -97,41 +319,56 @@ const tours = {
         name: "Kerala Nature Escape",
         price: 18999
     }
-};
 
+};
 
 
 /* =========================================================
    USER TOKEN VERIFICATION
 ========================================================= */
 
-function verifyUserToken(req, res, next) {
-
-    const authHeader =
-        req.headers.authorization;
-
-    if (!authHeader) {
-
-        return res.status(401).json({
-            message: "Login required."
-        });
-
-    }
-
-    const token =
-        authHeader.startsWith("Bearer ")
-            ? authHeader.substring(7)
-            : authHeader;
+function verifyUserToken(
+    req,
+    res,
+    next
+) {
 
     try {
 
-        const decoded =
-            jwt.verify(token, JWT_SECRET);
+        const authHeader =
+            req.headers.authorization;
 
-        if (decoded.role !== "user") {
+        if (
+            !authHeader ||
+            !authHeader.startsWith(
+                "Bearer "
+            )
+        ) {
+
+            return res.status(401).json({
+                message:
+                    "Authentication required."
+            });
+
+        }
+
+        const token =
+            authHeader.split(" ")[1];
+
+        const decoded =
+            jwt.verify(
+                token,
+                JWT_SECRET
+            );
+
+        if (
+            decoded.role &&
+            decoded.role !== "user"
+        ) {
 
             return res.status(403).json({
-                message: "User access required."
+                message:
+                    "User access required."
             });
 
         }
@@ -142,46 +379,66 @@ function verifyUserToken(req, res, next) {
 
     } catch (error) {
 
+        console.error(
+            "User token verification error:",
+            error.message
+        );
+
         return res.status(401).json({
-            message: "Invalid or expired login."
+            message:
+                "Invalid or expired authentication token."
         });
 
     }
-}
 
+}
 
 
 /* =========================================================
    ADMIN TOKEN VERIFICATION
 ========================================================= */
 
-function verifyAdminToken(req, res, next) {
-
-    const authHeader =
-        req.headers.authorization;
-
-    if (!authHeader) {
-
-        return res.status(401).json({
-            message: "Admin login required."
-        });
-
-    }
-
-    const token =
-        authHeader.startsWith("Bearer ")
-            ? authHeader.substring(7)
-            : authHeader;
+function verifyAdminToken(
+    req,
+    res,
+    next
+) {
 
     try {
 
-        const decoded =
-            jwt.verify(token, JWT_SECRET);
+        const authHeader =
+            req.headers.authorization;
 
-        if (decoded.role !== "admin") {
+        if (
+            !authHeader ||
+            !authHeader.startsWith(
+                "Bearer "
+            )
+        ) {
+
+            return res.status(401).json({
+                message:
+                    "Admin authentication required."
+            });
+
+        }
+
+        const token =
+            authHeader.split(" ")[1];
+
+        const decoded =
+            jwt.verify(
+                token,
+                JWT_SECRET
+            );
+
+        if (
+            decoded.role !== "admin"
+        ) {
 
             return res.status(403).json({
-                message: "Admin access required."
+                message:
+                    "Admin access required."
             });
 
         }
@@ -192,238 +449,288 @@ function verifyAdminToken(req, res, next) {
 
     } catch (error) {
 
+        console.error(
+            "Admin token verification error:",
+            error.message
+        );
+
         return res.status(401).json({
-            message: "Invalid or expired admin login."
+            message:
+                "Invalid or expired admin token."
         });
 
     }
+
 }
 
 
-
 /* =========================================================
-   BASIC ROUTES
+   HOME
 ========================================================= */
 
-app.get("/", (req, res) => {
+app.get(
+    "/",
+    (req, res) => {
 
-    res.json({
-        message: "Wanderly backend is running."
-    });
+        res.json({
+            message:
+                "Wanderly backend is running."
+        });
 
-});
+    }
+);
 
 
-app.get("/api/test", (req, res) => {
+/* =========================================================
+   TEST
+========================================================= */
 
-    res.json({
-        message: "Wanderly API is working."
-    });
+app.get(
+    "/api/test",
+    (req, res) => {
 
-});
+        res.json({
+            success: true,
+            message:
+                "Wanderly API is working."
+        });
 
+    }
+);
 
 
 /* =========================================================
    REGISTER
 ========================================================= */
 
-app.post("/api/register", async (req, res) => {
+app.post(
+    "/api/register",
+    async (req, res) => {
 
-    try {
+        try {
 
-        const {
-            name,
-            email,
-            password
-        } = req.body;
+            const {
+                name,
+                email,
+                password
+            } = req.body;
 
-        if (!name || !email || !password) {
+            if (
+                !name ||
+                !email ||
+                !password
+            ) {
 
-            return res.status(400).json({
-                message:
-                    "Name, email and password are required."
-            });
+                return res.status(400).json({
+                    message:
+                        "Name, email and password are required."
+                });
 
-        }
-
-        const normalizedEmail =
-            email.trim().toLowerCase();
-
-        const existingUser =
-            await UserModel.findOne({
-                email: normalizedEmail
-            });
-
-        if (existingUser) {
-
-            return res.status(400).json({
-                message:
-                    "An account with this email already exists."
-            });
-
-        }
-
-        const hashedPassword =
-            await bcrypt.hash(password, 10);
-
-        const user =
-            await UserModel.create({
-
-                name: name.trim(),
-
-                email: normalizedEmail,
-
-                password: hashedPassword
-
-            });
-
-        const token =
-            jwt.sign(
-                {
-                    id: user._id.toString(),
-                    name: user.name,
-                    email: user.email,
-                    role: "user"
-                },
-                JWT_SECRET,
-                {
-                    expiresIn: "7d"
-                }
-            );
-
-        res.status(201).json({
-
-            message: "Registration successful.",
-
-            token,
-
-            user: {
-                id: user._id.toString(),
-                name: user.name,
-                email: user.email
             }
 
-        });
+            if (
+                password.length < 6
+            ) {
 
-    } catch (error) {
+                return res.status(400).json({
+                    message:
+                        "Password must be at least 6 characters."
+                });
 
-        console.error(
-            "Register error:",
-            error
-        );
+            }
 
-        res.status(500).json({
-            message: "Registration failed."
-        });
+            const normalizedEmail =
+                email
+                    .trim()
+                    .toLowerCase();
+
+            const existingUser =
+                await UserModel.findOne({
+                    email:
+                        normalizedEmail
+                });
+
+            if (existingUser) {
+
+                return res.status(409).json({
+                    message:
+                        "An account with this email already exists."
+                });
+
+            }
+
+            const hashedPassword =
+                await bcrypt.hash(
+                    password,
+                    10
+                );
+
+            const user =
+                await UserModel.create({
+                    name:
+                        name.trim(),
+
+                    email:
+                        normalizedEmail,
+
+                    password:
+                        hashedPassword
+                });
+
+            res.status(201).json({
+                success: true,
+
+                message:
+                    "Registration successful.",
+
+                user: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email
+                }
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Registration error:",
+                error
+            );
+
+            res.status(500).json({
+                message:
+                    "Registration failed."
+            });
+
+        }
 
     }
-
-});
-
+);
 
 
 /* =========================================================
-   USER LOGIN
+   LOGIN
 ========================================================= */
 
-app.post("/api/login", async (req, res) => {
+app.post(
+    "/api/login",
+    async (req, res) => {
 
-    try {
+        try {
 
-        const {
-            email,
-            password
-        } = req.body;
+            const {
+                email,
+                password
+            } = req.body;
 
-        if (!email || !password) {
+            if (
+                !email ||
+                !password
+            ) {
 
-            return res.status(400).json({
-                message:
-                    "Email and password are required."
-            });
+                return res.status(400).json({
+                    message:
+                        "Email and password are required."
+                });
 
-        }
-
-        const normalizedEmail =
-            email.trim().toLowerCase();
-
-        const user =
-            await UserModel.findOne({
-                email: normalizedEmail
-            });
-
-        if (!user) {
-
-            return res.status(401).json({
-                message:
-                    "Invalid email or password."
-            });
-
-        }
-
-        const passwordMatch =
-            await bcrypt.compare(
-                password,
-                user.password
-            );
-
-        if (!passwordMatch) {
-
-            return res.status(401).json({
-                message:
-                    "Invalid email or password."
-            });
-
-        }
-
-        const token =
-            jwt.sign(
-                {
-                    id: user._id.toString(),
-                    name: user.name,
-                    email: user.email,
-                    role: "user"
-                },
-                JWT_SECRET,
-                {
-                    expiresIn: "7d"
-                }
-            );
-
-        res.json({
-
-            message: "Login successful.",
-
-            token,
-
-            user: {
-                id: user._id.toString(),
-                name: user.name,
-                email: user.email
             }
 
-        });
+            const normalizedEmail =
+                email
+                    .trim()
+                    .toLowerCase();
 
-    } catch (error) {
+            const user =
+                await UserModel.findOne({
+                    email:
+                        normalizedEmail
+                });
 
-        console.error(
-            "Login error:",
-            error
-        );
+            if (!user) {
 
-        res.status(500).json({
-            message: "Login failed."
-        });
+                return res.status(401).json({
+                    message:
+                        "Invalid email or password."
+                });
+
+            }
+
+            const passwordMatch =
+                await bcrypt.compare(
+                    password,
+                    user.password
+                );
+
+            if (!passwordMatch) {
+
+                return res.status(401).json({
+                    message:
+                        "Invalid email or password."
+                });
+
+            }
+
+            const token =
+                jwt.sign(
+                    {
+                        userId:
+                            user._id.toString(),
+
+                        name:
+                            user.name,
+
+                        email:
+                            user.email,
+
+                        role:
+                            "user"
+                    },
+                    JWT_SECRET,
+                    {
+                        expiresIn:
+                            "7d"
+                    }
+                );
+
+            res.json({
+
+                success: true,
+
+                token,
+
+                user: {
+                    id:
+                        user._id,
+
+                    name:
+                        user.name,
+
+                    email:
+                        user.email
+                }
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Login error:",
+                error
+            );
+
+            res.status(500).json({
+                message:
+                    "Login failed."
+            });
+
+        }
 
     }
-
-});
-
+);
 
 
 /* =========================================================
-   CREATE RAZORPAY ORDER
+   CREATE RAZORPAY PAYMENT ORDER
 ========================================================= */
 
 app.post(
@@ -439,8 +746,46 @@ app.post(
                 travelDate
             } = req.body;
 
+
+            console.log(
+                "Payment order request:",
+                {
+                    userId:
+                        req.user.userId,
+
+                    tourId,
+
+                    travellers,
+
+                    travelDate
+                }
+            );
+
+
+            if (
+                !tourId ||
+                !travellers ||
+                !travelDate
+            ) {
+
+                return res.status(400).json({
+                    message:
+                        "Tour, travellers and travel date are required."
+                });
+
+            }
+
+
+            const numericTourId =
+                Number(tourId);
+
+            const numberOfTravellers =
+                Number(travellers);
+
+
             const tour =
-                tours[Number(tourId)];
+                tours[numericTourId];
+
 
             if (!tour) {
 
@@ -451,15 +796,13 @@ app.post(
 
             }
 
-            const numberOfTravellers =
-                Number(travellers);
 
             if (
                 !Number.isInteger(
                     numberOfTravellers
                 ) ||
                 numberOfTravellers < 1 ||
-                numberOfTravellers > 6
+                numberOfTravellers > 20
             ) {
 
                 return res.status(400).json({
@@ -469,48 +812,50 @@ app.post(
 
             }
 
-            if (!travelDate) {
 
-                return res.status(400).json({
+            if (
+                !RAZORPAY_KEY_ID ||
+                !RAZORPAY_KEY_SECRET
+            ) {
+
+                console.error(
+                    "Razorpay credentials are missing on the server."
+                );
+
+                return res.status(500).json({
                     message:
-                        "Travel date is required."
+                        "Razorpay is not configured on the server."
                 });
 
             }
+
 
             const totalAmount =
                 tour.price *
                 numberOfTravellers;
 
-            /*
-                Razorpay expects the amount
-                in the smallest currency unit.
-
-                ₹14,999 becomes:
-                14999 × 100 = 1499900 paise
-            */
-
-            const amountInPaise =
-                totalAmount * 100;
 
             const order =
                 await razorpay.orders.create({
 
                     amount:
-                        amountInPaise,
+                        totalAmount * 100,
 
-                    currency: "INR",
+                    currency:
+                        "INR",
 
                     receipt:
                         `wanderly_${Date.now()}`,
 
                     notes: {
 
-                        tourId:
-                            String(tourId),
+                        userId:
+                            req.user.userId,
 
-                        tourName:
-                            tour.name,
+                        tourId:
+                            String(
+                                numericTourId
+                            ),
 
                         travellers:
                             String(
@@ -518,27 +863,35 @@ app.post(
                             ),
 
                         travelDate:
-                            travelDate,
-
-                        userId:
-                            String(
-                                req.user.id
-                            ),
-
-                        customerEmail:
-                            req.user.email
-
+                            travelDate
                     }
 
                 });
 
-            res.json({
+
+            console.log(
+                "Razorpay order created:",
+                order.id
+            );
+
+
+            /*
+             IMPORTANT:
+
+             The frontend will use "keyId".
+
+             We deliberately return the public
+             Razorpay Key ID here.
+
+             The secret is NEVER returned.
+            */
+
+            return res.json({
 
                 success: true,
 
-                key:
-                    process.env
-                        .RAZORPAY_KEY_ID,
+                keyId:
+                    RAZORPAY_KEY_ID,
 
                 orderId:
                     order.id,
@@ -549,8 +902,17 @@ app.post(
                 currency:
                     order.currency,
 
+                tourId:
+                    numericTourId,
+
                 tourName:
                     tour.name,
+
+                pricePerPerson:
+                    tour.price,
+
+                travellers:
+                    numberOfTravellers,
 
                 totalAmount:
                     totalAmount
@@ -560,20 +922,23 @@ app.post(
         } catch (error) {
 
             console.error(
-                "Razorpay order error:",
+                "Razorpay order creation error:",
                 error
             );
 
-            res.status(500).json({
+            return res.status(500).json({
+
                 message:
+                    error?.error?.description ||
+                    error?.message ||
                     "Unable to create payment order."
+
             });
 
         }
 
     }
 );
-
 
 
 /* =========================================================
@@ -591,10 +956,14 @@ app.post(
                 razorpay_order_id,
                 razorpay_payment_id,
                 razorpay_signature,
+
                 tourId,
                 travelDate,
-                travellers
+                travellers,
+                customerName,
+                customerEmail
             } = req.body;
+
 
             if (
                 !razorpay_order_id ||
@@ -609,17 +978,12 @@ app.post(
 
             }
 
-            /*
-                Retrieve the Razorpay order from Razorpay.
-
-                This prevents the browser from changing
-                the original order amount.
-            */
 
             const order =
                 await razorpay.orders.fetch(
                     razorpay_order_id
                 );
+
 
             if (!order) {
 
@@ -630,25 +994,29 @@ app.post(
 
             }
 
-            /*
-                Check that this order belongs
-                to the logged-in user.
-            */
 
             if (
-                order.notes.userId !==
-                String(req.user.id)
+                order.notes?.userId !==
+                req.user.userId
             ) {
 
                 return res.status(403).json({
                     message:
-                        "This payment does not belong to this user."
+                        "This payment order does not belong to the logged-in user."
                 });
 
             }
 
+
+            const numericTourId =
+                Number(tourId);
+
+            const numberOfTravellers =
+                Number(travellers);
+
             const tour =
-                tours[Number(tourId)];
+                tours[numericTourId];
+
 
             if (!tour) {
 
@@ -659,13 +1027,12 @@ app.post(
 
             }
 
-            const numberOfTravellers =
-                Number(travellers);
 
             const expectedAmount =
                 tour.price *
                 numberOfTravellers *
                 100;
+
 
             if (
                 Number(order.amount) !==
@@ -674,73 +1041,60 @@ app.post(
 
                 return res.status(400).json({
                     message:
-                        "Payment amount does not match booking."
+                        "Payment amount verification failed."
                 });
 
             }
 
-            /*
-                Create HMAC SHA256 signature.
-
-                Razorpay signature:
-                HMAC(order_id + "|" + payment_id)
-            */
 
             const generatedSignature =
                 crypto
                     .createHmac(
                         "sha256",
-                        process.env
-                            .RAZORPAY_KEY_SECRET
+                        RAZORPAY_KEY_SECRET
                     )
                     .update(
-                        razorpay_order_id +
-                        "|" +
-                        razorpay_payment_id
+                        `${razorpay_order_id}|${razorpay_payment_id}`
                     )
                     .digest("hex");
 
-            const signatureIsValid =
-                crypto.timingSafeEqual(
-                    Buffer.from(
-                        generatedSignature
-                    ),
-                    Buffer.from(
-                        razorpay_signature
-                    )
-                );
 
-            if (!signatureIsValid) {
+            if (
+                generatedSignature !==
+                razorpay_signature
+            ) {
 
                 return res.status(400).json({
                     message:
-                        "Payment verification failed."
+                        "Payment signature verification failed."
                 });
 
             }
 
-            /*
-                Save booking only AFTER
-                successful payment verification.
-            */
 
             const booking =
                 await BookingModel.create({
 
                     userId:
-                        String(req.user.id),
+                        req.user.userId,
 
                     tourId:
-                        Number(tourId),
+                        numericTourId,
 
                     tourName:
                         tour.name,
 
                     customerName:
+                        customerName ||
                         req.user.name,
 
                     customerEmail:
-                        req.user.email,
+                        (
+                            customerEmail ||
+                            req.user.email
+                        )
+                            .trim()
+                            .toLowerCase(),
 
                     travelDate:
                         travelDate,
@@ -772,7 +1126,14 @@ app.post(
 
                 });
 
-            res.json({
+
+            console.log(
+                "Booking saved:",
+                booking._id.toString()
+            );
+
+
+            return res.json({
 
                 success: true,
 
@@ -780,12 +1141,17 @@ app.post(
                     "Payment verified and booking confirmed.",
 
                 booking: {
-
                     id:
                         booking._id,
 
                     tourName:
                         booking.tourName,
+
+                    travelDate:
+                        booking.travelDate,
+
+                    travellers:
+                        booking.travellers,
 
                     totalAmount:
                         booking.totalAmount,
@@ -795,7 +1161,6 @@ app.post(
 
                     bookingStatus:
                         booking.bookingStatus
-
                 }
 
             });
@@ -807,7 +1172,7 @@ app.post(
                 error
             );
 
-            res.status(500).json({
+            return res.status(500).json({
                 message:
                     "Payment verification failed."
             });
@@ -816,7 +1181,6 @@ app.post(
 
     }
 );
-
 
 
 /* =========================================================
@@ -831,17 +1195,23 @@ app.get(
         try {
 
             const bookings =
-                await BookingModel.find({
-
-                    userId:
-                        String(req.user.id)
-
-                })
+                await BookingModel
+                    .find({
+                        userId:
+                            req.user.userId
+                    })
                     .sort({
-                        createdAt: -1
+                        createdAt:
+                            -1
                     });
 
-            res.json(bookings);
+            res.json({
+
+                success: true,
+
+                bookings
+
+            });
 
         } catch (error) {
 
@@ -859,45 +1229,6 @@ app.get(
 
     }
 );
-
-
-
-/* =========================================================
-   ADMIN - GET ALL BOOKINGS
-========================================================= */
-
-app.get(
-    "/api/bookings",
-    verifyAdminToken,
-    async (req, res) => {
-
-        try {
-
-            const bookings =
-                await BookingModel.find({})
-                    .sort({
-                        createdAt: -1
-                    });
-
-            res.json(bookings);
-
-        } catch (error) {
-
-            console.error(
-                "Admin bookings error:",
-                error
-            );
-
-            res.status(500).json({
-                message:
-                    "Unable to fetch bookings."
-            });
-
-        }
-
-    }
-);
-
 
 
 /* =========================================================
@@ -930,16 +1261,19 @@ app.post(
             }
 
             const normalizedEmail =
-                email.trim().toLowerCase();
+                email
+                    .trim()
+                    .toLowerCase();
 
-            const existingAdmin =
+            const existing =
                 await AdminModel.findOne({
-                    email: normalizedEmail
+                    email:
+                        normalizedEmail
                 });
 
-            if (existingAdmin) {
+            if (existing) {
 
-                return res.status(400).json({
+                return res.status(409).json({
                     message:
                         "Admin already exists."
                 });
@@ -968,11 +1302,12 @@ app.post(
 
             res.status(201).json({
 
+                success: true,
+
                 message:
                     "Admin created successfully.",
 
                 admin: {
-
                     id:
                         admin._id,
 
@@ -981,7 +1316,6 @@ app.post(
 
                     email:
                         admin.email
-
                 }
 
             });
@@ -1004,7 +1338,6 @@ app.post(
 );
 
 
-
 /* =========================================================
    ADMIN LOGIN
 ========================================================= */
@@ -1020,20 +1353,10 @@ app.post(
                 password
             } = req.body;
 
-            if (
-                !email ||
-                !password
-            ) {
-
-                return res.status(400).json({
-                    message:
-                        "Email and password are required."
-                });
-
-            }
-
             const normalizedEmail =
-                email.trim().toLowerCase();
+                email
+                    .trim()
+                    .toLowerCase();
 
             const admin =
                 await AdminModel.findOne({
@@ -1068,7 +1391,7 @@ app.post(
             const token =
                 jwt.sign(
                     {
-                        id:
+                        adminId:
                             admin._id.toString(),
 
                         name:
@@ -1089,22 +1412,19 @@ app.post(
 
             res.json({
 
-                message:
-                    "Admin login successful.",
+                success: true,
 
                 token,
 
                 admin: {
-
                     id:
-                        admin._id.toString(),
+                        admin._id,
 
                     name:
                         admin.name,
 
                     email:
                         admin.email
-
                 }
 
             });
@@ -1127,38 +1447,115 @@ app.post(
 );
 
 
+/* =========================================================
+   GET ALL BOOKINGS FOR ADMIN
+========================================================= */
+
+app.get(
+    "/api/bookings",
+    verifyAdminToken,
+    async (req, res) => {
+
+        try {
+
+            const bookings =
+                await BookingModel
+                    .find()
+                    .sort({
+                        createdAt:
+                            -1
+                    });
+
+            res.json({
+
+                success: true,
+
+                bookings
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Admin bookings error:",
+                error
+            );
+
+            res.status(500).json({
+                message:
+                    "Unable to fetch bookings."
+            });
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   MONGODB EVENTS
+========================================================= */
+
+userConnection.on(
+    "connected",
+    () => {
+
+        console.log(
+            "User MongoDB connection established."
+        );
+
+    }
+);
+
+userConnection.on(
+    "error",
+    (error) => {
+
+        console.error(
+            "User MongoDB error:",
+            error
+        );
+
+    }
+);
+
+
+bookingConnection.on(
+    "connected",
+    () => {
+
+        console.log(
+            "Booking MongoDB connection established."
+        );
+
+    }
+);
+
+bookingConnection.on(
+    "error",
+    (error) => {
+
+        console.error(
+            "Booking MongoDB error:",
+            error
+        );
+
+    }
+);
+
 
 /* =========================================================
    START SERVER
 ========================================================= */
 
-Promise.all([
-    userConnection.asPromise(),
-    bookingConnection.asPromise()
-])
-    .then(() => {
+app.listen(
+    PORT,
+    "0.0.0.0",
+    () => {
 
         console.log(
-            "MongoDB connections established."
+            `Wanderly backend running on port ${PORT}`
         );
 
-        app.listen(
-            PORT,
-            () => {
-
-                console.log(
-                    `Wanderly backend running on http://localhost:${PORT}`
-                );
-
-            }
-        );
-
-    })
-    .catch((error) => {
-
-        console.error(
-            "MongoDB connection error:",
-            error
-        );
-
-    });
+    }
+);
